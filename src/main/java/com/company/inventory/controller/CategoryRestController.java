@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/category")
+@CrossOrigin(origins = "http://localhost:4200")
 public class CategoryRestController {
 
     private CategoryService categoryService;
@@ -73,6 +74,51 @@ public class CategoryRestController {
             return ResponseEntity.ok(categoryResponseRest);
         } catch (Exception e) {
             categoryResponseRest.setMetadata(HttpStatus.BAD_REQUEST, e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>(categoryResponseRest, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponseRest> upadteCategory(@RequestBody Category category, @PathVariable long id) {
+        CategoryResponseRest categoryResponseRest = new CategoryResponseRest();
+        if (category.getId() == 0) category.setId(id);
+
+        try {
+            Category categories = this.categoryService.findCategoryById(id);
+
+            if (categories == null) throw new Exception("Not found category");
+
+            categories = this.categoryService.saveCategory(category);
+
+            categoryResponseRest.getCategoryResponse().setCategories(Arrays.asList(categories));
+            categoryResponseRest.setMetadata(HttpStatus.OK, "Category updated.");
+
+            return ResponseEntity.ok(categoryResponseRest);
+        } catch (Exception e) {
+            categoryResponseRest.setMetadata(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>(categoryResponseRest, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CategoryResponseRest> deleteCategory(@PathVariable long id) {
+        CategoryResponseRest categoryResponseRest = new CategoryResponseRest();
+
+        try {
+            Category categories = this.categoryService.findCategoryById(id);
+
+            if (categories == null) throw new Exception("Not found category");
+
+            this.categoryService.deleteCategory(id);
+
+            categoryResponseRest.getCategoryResponse().setCategories(null);
+            categoryResponseRest.setMetadata(HttpStatus.OK, "Category deleted.");
+
+            return ResponseEntity.ok(categoryResponseRest);
+        } catch (Exception e) {
+            categoryResponseRest.setMetadata(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
             e.printStackTrace();
             return new ResponseEntity<>(categoryResponseRest, HttpStatus.INTERNAL_SERVER_ERROR);
         }
