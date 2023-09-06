@@ -25,4 +25,15 @@ public class CategoryServiceImpl implements CategoryService {
         return categories;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Category findCategoryById(long id) {
+        return this.categoryRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public Category saveCategory(Category category) {
+        return this.categoryRepository.save(category);
+    }
 }
