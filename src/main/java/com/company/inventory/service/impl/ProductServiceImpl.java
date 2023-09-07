@@ -30,4 +30,9 @@ public class ProductServiceImpl implements ProductService {
             return null;
         }
     }
+
+    @Override
+    public Product findProductById(long id) {
+        return this.productRepository.findById(id).orElse(null);
+    }
 }

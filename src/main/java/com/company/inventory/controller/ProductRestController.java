@@ -42,7 +42,6 @@ public class ProductRestController {
             @RequestParam double account,
             @RequestParam long category_id
             ) throws IOException {
-        System.out.println("name = " + name);
         Product product = new Product();
         product.setName(name);
         product.setPrice(price);
@@ -55,6 +54,36 @@ public class ProductRestController {
         productResponseRest.setMetadata(HttpStatus.OK, "Product created");
         productResponseRest.getProductResponse().setProducts(Arrays.asList(product));
         return ResponseEntity.ok(productResponseRest);
+    }
+
+    @GetMapping("/{id}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ProductResponseRest> findByIdProduct(@PathVariable Long id) {
+        ProductResponseRest productResponseRest = new ProductResponseRest();
+        Product product;
+
+        try {
+            product = this.productService.findProductById(id);
+
+            if (product == null) {
+                productResponseRest.setMetadata(HttpStatus.NO_CONTENT, "Product not found.");
+                productResponseRest.getProductResponse().setProducts(null);
+                return ResponseEntity.ok(productResponseRest);
+            }
+
+            //para mostrar la imagen descomprimida
+            byte[] imageDesCompress = UtilImageCompress.decompressZLib(product.getPicture());
+            product.setPicture(imageDesCompress);
+
+            productResponseRest.setMetadata(HttpStatus.OK, "Product find.");
+            productResponseRest.getProductResponse().setProducts( Arrays.asList(product));
+            return ResponseEntity.ok(productResponseRest);
+
+        } catch (Exception e) {
+            productResponseRest.setMetadata(HttpStatus.BAD_REQUEST, "Product not found.");
+            return ResponseEntity.ok(productResponseRest);
+        }
+
     }
 
 }
