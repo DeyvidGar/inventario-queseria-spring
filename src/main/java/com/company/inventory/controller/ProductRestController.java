@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/product")
@@ -70,10 +71,13 @@ public class ProductRestController {
                 productResponseRest.getProductResponse().setProducts(null);
                 return ResponseEntity.ok(productResponseRest);
             }
+            System.out.println("imagen sin descom" + product.getPicture());
 
             //para mostrar la imagen descomprimida
             byte[] imageDesCompress = UtilImageCompress.decompressZLib(product.getPicture());
             product.setPicture(imageDesCompress);
+
+            System.out.println("imagen con descom" + product.getPicture());
 
             productResponseRest.setMetadata(HttpStatus.OK, "Product find.");
             productResponseRest.getProductResponse().setProducts( Arrays.asList(product));
@@ -83,7 +87,38 @@ public class ProductRestController {
             productResponseRest.setMetadata(HttpStatus.BAD_REQUEST, "Product not found.");
             return ResponseEntity.ok(productResponseRest);
         }
-
     }
 
+    @GetMapping("/filter/{name}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ProductResponseRest> findProductByName(@PathVariable String name) {
+        ProductResponseRest productResponseRest = new ProductResponseRest();
+        List<Product> products;
+
+        try {
+            products = this.productService.findProductsByName(name);
+
+            if (products.isEmpty() || products == null) {
+                productResponseRest.setMetadata(HttpStatus.NO_CONTENT, "Products not found.");
+                productResponseRest.getProductResponse().setProducts(null);
+                return ResponseEntity.ok(productResponseRest);
+            }
+
+            products.stream().forEach( product -> {
+                //para mostrar la imagen descomprimida
+                byte[] imageDesCompress = UtilImageCompress.decompressZLib(product.getPicture());
+                product.setPicture(imageDesCompress);
+
+            });
+
+
+            productResponseRest.setMetadata(HttpStatus.OK, "Product find.");
+            productResponseRest.getProductResponse().setProducts( products);
+            return ResponseEntity.ok(productResponseRest);
+
+        } catch (Exception e) {
+            productResponseRest.setMetadata(HttpStatus.BAD_REQUEST, "Products not found.");
+            return ResponseEntity.ok(productResponseRest);
+        }
+    }
 }

@@ -8,6 +8,8 @@ import com.company.inventory.service.ProductService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class ProductServiceImpl implements ProductService {
 
@@ -34,5 +36,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product findProductById(long id) {
         return this.productRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public List<Product> findProductsByName(String name) {
+        return this.productRepository.findByNameContaining(name);
     }
 }
